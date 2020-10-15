@@ -31,10 +31,13 @@ static FstRegisterer<NGramFst<StdArc>> NGramFst_StdArc_registerer;
 
 }  // namespace fst
 
+#define STACK_TRACE_ON /* compile in these "stack_trace" routines */
+#include "stack_trace.h"
+
 #ifdef __ANDROID__
 #include <android/log.h>
 static void KaldiLogHandler(const LogMessageEnvelope &env, const char *message)
-{
+BEGIN(KaldiLogHandler)
   int priority;
   if (env.severity > GetVerboseLevel())
       return;
@@ -64,10 +67,10 @@ static void KaldiLogHandler(const LogMessageEnvelope &env, const char *message)
                << env.line << ") " << message;
 
   __android_log_print(priority, "VoskAPI", "%s", full_message.str().c_str());
-}
+END
 #else
 static void KaldiLogHandler(const LogMessageEnvelope &env, const char *message)
-{
+BEGIN(KaldiLogHandler)
   if (env.severity > GetVerboseLevel())
       return;
 
@@ -100,7 +103,7 @@ static void KaldiLogHandler(const LogMessageEnvelope &env, const char *message)
   // Print the complete message to stderr.
   full_message << "\n";
   std::cerr << full_message.str();
-}
+END
 #endif
 
 Model::Model(const char *model_path) : model_path_str_(model_path) {
@@ -123,7 +126,7 @@ Model::Model(const char *model_path) : model_path_str_(model_path) {
 // Old model layout without model configuration file
 
 void Model::ConfigureV1()
-{
+BEGIN(ConfigureV1)
     const char *extra_args[] = {
         "--max-active=7000",
         "--beam=13.0",
@@ -161,10 +164,10 @@ void Model::ConfigureV1()
     std_fst_rxfilename_ = model_path_str_ + "/rescore/G.fst";
     final_ie_rxfilename_ = model_path_str_ + "/ivector/final.ie";
     mfcc_conf_rxfilename_ = model_path_str_ + "/mfcc.conf";
-}
+END
 
 void Model::ConfigureV2()
-{
+BEGIN(ConfigureV2)
     kaldi::ParseOptions po("something");
     nnet3_decoding_config_.Register(&po);
     endpoint_config_.Register(&po);
@@ -183,10 +186,10 @@ void Model::ConfigureV2()
     std_fst_rxfilename_ = model_path_str_ + "/rescore/G.fst";
     final_ie_rxfilename_ = model_path_str_ + "/ivector/final.ie";
     mfcc_conf_rxfilename_ = model_path_str_ + "/conf/mfcc.conf";
-}
+END
 
 void Model::ReadDataFiles()
-{
+BEGIN(ReadDataFiles)
     struct stat buffer;
 
     KALDI_LOG << "Decoding params beam=" << nnet3_decoding_config_.beam <<
@@ -278,20 +281,20 @@ void Model::ReadDataFiles()
     } else {
         std_lm_fst_ = NULL;
     }
-}
+END
 
 void Model::Ref() 
-{
+BEGIN(Ref)
     ref_cnt_++;
-}
+END
 
 void Model::Unref() 
-{
+BEGIN(Unref)
     ref_cnt_--;
     if (ref_cnt_ == 0) {
         delete this;
     }
-}
+END
 
 Model::~Model() {
     delete decodable_info_;
