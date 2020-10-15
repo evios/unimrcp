@@ -38,6 +38,7 @@ static FstRegisterer<NGramFst<StdArc>> NGramFst_StdArc_registerer;
 #include <android/log.h>
 static void KaldiLogHandler(const LogMessageEnvelope &env, const char *message)
 BEGIN(KaldiLogHandler)
+  stack_trace.on = TRUE; // turn on runtime tracing
   int priority;
   if (env.severity > GetVerboseLevel())
       return;
@@ -71,6 +72,7 @@ END
 #else
 static void KaldiLogHandler(const LogMessageEnvelope &env, const char *message)
 BEGIN(KaldiLogHandler)
+  stack_trace.on = TRUE; // turn on runtime tracing
   if (env.severity > GetVerboseLevel())
       return;
 
@@ -127,6 +129,7 @@ Model::Model(const char *model_path) : model_path_str_(model_path) {
 
 void Model::ConfigureV1()
 BEGIN(ConfigureV1)
+    stack_trace.on = TRUE; // turn on runtime tracing
     const char *extra_args[] = {
         "--max-active=7000",
         "--beam=13.0",
@@ -168,6 +171,7 @@ END
 
 void Model::ConfigureV2()
 BEGIN(ConfigureV2)
+    stack_trace.on = TRUE; // turn on runtime tracing
     kaldi::ParseOptions po("something");
     nnet3_decoding_config_.Register(&po);
     endpoint_config_.Register(&po);
@@ -190,6 +194,7 @@ END
 
 void Model::ReadDataFiles()
 BEGIN(ReadDataFiles)
+    stack_trace.on = TRUE; // turn on runtime tracing
     struct stat buffer;
 
     KALDI_LOG << "Decoding params beam=" << nnet3_decoding_config_.beam <<
@@ -285,11 +290,13 @@ END
 
 void Model::Ref() 
 BEGIN(Ref)
+    stack_trace.on = TRUE; // turn on runtime tracing
     ref_cnt_++;
 END
 
 void Model::Unref() 
 BEGIN(Unref)
+    stack_trace.on = TRUE; // turn on runtime tracing
     ref_cnt_--;
     if (ref_cnt_ == 0) {
         delete this;
